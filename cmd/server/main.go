@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/mohammadraasel/go-api/internal/database"
 	tHttp "github.com/mohammadraasel/go-api/internal/transport/http"
 )
 
@@ -13,6 +14,12 @@ type App struct {
 func (app *App) Run() error {
 	handler := tHttp.NewHandler()
 	handler.SetupRoutes()
+
+	_, err := database.New()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 
 	if err := http.ListenAndServe(":4000", handler.Router); err != nil {
 		fmt.Println("Failed to setup server")
