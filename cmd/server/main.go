@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/mohammadraasel/go-api/internal/comment"
 	"github.com/mohammadraasel/go-api/internal/database"
 	tHttp "github.com/mohammadraasel/go-api/internal/transport/http"
 )
@@ -12,14 +13,21 @@ type App struct {
 }
 
 func (app *App) Run() error {
-	handler := tHttp.NewHandler()
-	handler.SetupRoutes()
 
-	_, err := database.New()
+	db, err := database.New()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
+
+	err = database.MigrateDB(db)
+	if err != nil {
+		return err
+	}
+
+	commentService := comment.NewService(db)
+	handler := tHttp.NewHandler(commentService)
+	handler.SetupRoutes()
 
 	if err := http.ListenAndServe(":4000", handler.Router); err != nil {
 		fmt.Println("Failed to setup server")
